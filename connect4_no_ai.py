@@ -48,25 +48,25 @@ def winning_move(board, piece):
     # checking horizontal locations for win
     for c in range(COLS-3):
         for r in range(ROWS):
-            if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3]:
+            if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3] == piece:
                 return True
 
     # checking horizontal locations for win
     for c in range(COLS):
         for r in range(ROWS-3):
-            if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c]:
+            if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece:
                 return True
 
     # checking positively sloped diagonals for win
     for c in range(COLS-3):
         for r in range(2, ROWS):
-            if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3]:
+            if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
 
     # checking negatively sloped diagonals for win
     for c in range(3,COLS):
         for r in range(2, ROWS):
-            if board[r][c] == piece and board[r-1][c-1] == piece and board[r-2][c-2] == piece and board[r-3][c-3]:
+            if board[r][c] == piece and board[r-1][c-1] == piece and board[r-2][c-2] == piece and board[r-3][c-3] == piece:
                 return True
 
 def draw_board(board):
