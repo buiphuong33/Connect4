@@ -11,15 +11,19 @@ WIDTH, HEIGHT = 1000, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Connect 4")
 
+background = pygame.image.load("images/connect4_theme.png")
+background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BG_COLOR = (218, 244, 255)
-BUTTON_COLOR = (81, 167, 191)
-HOVER_COLOR = (30, 130, 230)
+BUTTON_COLOR = (255, 215, 0)
+HOVER_COLOR = (238, 201, 0)
+
 
 # Fonts
-font = pygame.font.Font(None, 40)
+font = pygame.font.Font(None, 35)
 my_font = pygame.font.SysFont("monospace", 75)
 
 # Button drawing function
@@ -52,7 +56,7 @@ def main():
                 return
 
             if state == "menu":
-                if draw_button("Play vs AI", 225, 300, 250, 60, BUTTON_COLOR, HOVER_COLOR):
+                if draw_button("Play vs AI", 535, 410, 250, 50, BUTTON_COLOR, HOVER_COLOR):
                     state = "game"
                     ai_mode = True
                     board = create_board()
@@ -61,7 +65,7 @@ def main():
                     turn = random.randint(PLAYER_TURN, AI_TURN)
                     screen.fill(BLACK)  
                     draw_board(screen, board)
-                elif draw_button("Play vs Player", 225, 200, 250, 60, BUTTON_COLOR, HOVER_COLOR):
+                elif draw_button("Play vs Player", 535, 340, 250, 50, BUTTON_COLOR, HOVER_COLOR):
                     state = "game"
                     ai_mode = False
                     board = create_board()
@@ -80,11 +84,10 @@ def main():
 
         # Vẽ giao diện dựa trên trạng thái
         if state == "menu":
-            screen.fill(BG_COLOR)
-            title_text = font.render("Choose Game Mode", True, BLACK)
-            screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 80))
-            draw_button("Play vs Player", 225, 200, 250, 60, BUTTON_COLOR, HOVER_COLOR)
-            draw_button("Play vs AI", 225, 300, 250, 60, BUTTON_COLOR, HOVER_COLOR)
+            screen.blit(background, (0, 0))
+            draw_button("Play vs Player", 535, 340, 250, 50, BUTTON_COLOR, HOVER_COLOR)
+            draw_button("Play vs AI", 535, 410, 250, 50, BUTTON_COLOR, HOVER_COLOR)
+            draw_button("Compete", 535, 480, 250, 50, BUTTON_COLOR, HOVER_COLOR)
 
         pygame.display.update()
 
