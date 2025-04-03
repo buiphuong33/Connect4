@@ -7,7 +7,7 @@ from connect4_no_ai import play_no_ai_game
 pygame.init()
 
 # Screen dimensions
-WIDTH, HEIGHT = 700, 700
+WIDTH, HEIGHT = 1000, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Connect 4")
 
