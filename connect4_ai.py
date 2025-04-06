@@ -2,7 +2,6 @@ import math
 import random
 from connect4_utils import *
 
-
 def evaluate_window(window, piece):
     opponent_piece = PLAYER_PIECE if piece == AI_PIECE else AI_PIECE
     score = 0
@@ -16,8 +15,6 @@ def evaluate_window(window, piece):
         score -= 4
     return score  
 
-
-# scoring the overall attractiveness of a board after a piece has been droppped
 def score_position(board, piece):
     score = 0
     center_array = [int(i) for i in list(board[:, COLS // 2])]
@@ -93,36 +90,32 @@ def get_valid_locations(board):
     return [col for col in range(COLS) if is_valid_location(board, col)]
 
 def play_ai_game(screen, event, board, turn, not_over, my_font):
+    winner = None
     if turn == PLAYER_TURN:
-        if event.type == pygame.MOUSEMOTION and not_over:
-            pygame.draw.rect(screen, BLACK, (0, 0, COLS * SQUARESIZE, SQUARESIZE))
-            xpos = pygame.mouse.get_pos()[0]
-            pygame.draw.circle(screen, RED, (xpos, int(SQUARESIZE / 2)), circle_radius)
         if event.type == pygame.MOUSEBUTTONDOWN and not_over:
-            pygame.draw.rect(screen, BLACK, (0, 0, COLS * SQUARESIZE, SQUARESIZE))
             xpos = event.pos[0]
-            col = int(math.floor(xpos / SQUARESIZE))
-            if is_valid_location(board, col):
+            col = int(math.floor((xpos - BOARD_X_OFFSET) / SQUARESIZE))
+            if 0 <= col < COLS and is_valid_location(board, col):
                 row = get_next_open_row(board, col)
                 drop_piece(board, row, col, PLAYER_PIECE)
                 if winning_move(board, PLAYER_PIECE):
-                    label = my_font.render("PLAYER 1 WINS!", 1, RED)
-                    screen.blit(label, (40, 10))
+                    winner = "Player WIN!"
                     not_over = False
-                    Timer(3.0, end_game).start()
-                draw_board(screen, board)
+                elif len(get_valid_locations(board)) == 0:
+                    winner = "Draw!"
+                    not_over = False
                 turn = (turn + 1) % 2
     elif turn == AI_TURN and not_over:
         col, _ = minimax(board, 5, -math.inf, math.inf, True)
-        if is_valid_location(board, col):
+        if 0 <= col < COLS and is_valid_location(board, col):
             pygame.time.wait(500)
             row = get_next_open_row(board, col)
             drop_piece(board, row, col, AI_PIECE)
             if winning_move(board, AI_PIECE):
-                label = my_font.render("AI WINS!", 1, YELLOW)
-                screen.blit(label, (40, 10))
+                winner = "FFF_AI WIN!"
                 not_over = False
-                Timer(3.0, end_game).start()
-            draw_board(screen, board)
+            elif len(get_valid_locations(board)) == 0:
+                winner = "Draw!"
+                not_over = False
             turn = (turn + 1) % 2
-    return turn, not_over
+    return turn, not_over, winner
