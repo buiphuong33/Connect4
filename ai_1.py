@@ -3,8 +3,47 @@ import math
 import random
 import time
 
+ROW_COUNT = 6
+COLUMN_COUNT = 7
+PLAYER = 0
+AI = 1
+PLAYER_PIECE = 1
+AI_PIECE = 2
+WINDOW_LENGTH = 4
+EMPTY = 0
+MAX_DEPTH = 6
 # Bảng băm để lưu trữ trạng thái
 transposition_table = {}
+
+def drop_piece(board, row, col, piece):
+    board[row][col] = piece
+    
+def winning_move(board, piece):
+    # Kiểm tra ngang
+    for c in range(COLUMN_COUNT - 3):
+        for r in range(ROW_COUNT):
+            if all(board[r][c+i] == piece for i in range(4)):
+                return True
+
+    # Kiểm tra dọc
+    for c in range(COLUMN_COUNT):
+        for r in range(ROW_COUNT - 3):
+            if all(board[r+i][c] == piece for i in range(4)):
+                return True
+
+    # Kiểm tra chéo /
+    for c in range(COLUMN_COUNT - 3):
+        for r in range(ROW_COUNT - 3):
+            if all(board[r+i][c+i] == piece for i in range(4)):
+                return True
+
+    # Kiểm tra chéo \
+    for c in range(COLUMN_COUNT - 3):
+        for r in range(3, ROW_COUNT):
+            if all(board[r-i][c+i] == piece for i in range(4)):
+                return True
+
+    return False
 
 def evaluate_window(window, piece):
     opponent_piece = 2 if piece == 1 else 1
@@ -16,32 +55,41 @@ def evaluate_window(window, piece):
     elif window.count(piece) == 2 and window.count(0) == 2:
         score += 2
     if window.count(opponent_piece) == 3 and window.count(0) == 1:
-        score -= 10 
+        score -= 4 
     return score
 
 def score_position(board, piece):
     score = 0
-    center_array = [int(i) for i in list(board[:, board.shape[1]//2])]
+    center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])]
     center_count = center_array.count(piece)
-    score += center_count * 3 
-    for r in range(board.shape[0]):
+    score += center_count * 3
+
+    # Kiểm tra hàng ngang
+    for r in range(ROW_COUNT):
         row_array = [int(i) for i in list(board[r, :])]
-        for c in range(board.shape[1] - 3):
-            window = row_array[c:c + 4]
+        for c in range(COLUMN_COUNT - 3):
+            window = row_array[c:c+WINDOW_LENGTH]
             score += evaluate_window(window, piece)
-    for c in range(board.shape[1]):
+
+    # Kiểm tra dọc
+    for c in range(COLUMN_COUNT):
         col_array = [int(i) for i in list(board[:, c])]
-        for r in range(board.shape[0]-3):
-            window = col_array[r:r+4]
+        for r in range(ROW_COUNT - 3):
+            window = col_array[r:r+WINDOW_LENGTH]
             score += evaluate_window(window, piece)
-    for r in range(3, board.shape[0]):
-        for c in range(board.shape[1] - 3):
-            window = [board[r-i][c+i] for i in range(4)]
+
+    # Kiểm tra chéo /
+    for r in range(ROW_COUNT - 3):
+        for c in range(COLUMN_COUNT - 3):
+            window = [board[r+i][c+i] for i in range(WINDOW_LENGTH)]
             score += evaluate_window(window, piece)
-    for r in range(3, board.shape[0]):
-        for c in range(3, board.shape[1]):
-            window = [board[r-i][c-i] for i in range(4)]
+
+    # Kiểm tra chéo \
+    for r in range(ROW_COUNT - 3):
+        for c in range(COLUMN_COUNT - 3):
+            window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
             score += evaluate_window(window, piece)
+
     return score
 
 def is_terminal_node(board, winning_move):
@@ -60,64 +108,53 @@ def simple_move_order(valid_locations, board_width):
     center = board_width // 2
     return sorted(valid_locations, key=lambda x: abs(x - center))
 
-def minimax(board, depth, alpha, beta, maximizing_player, piece, winning_move):
-    board_hash = hash(str(board.tobytes()))
-    if board_hash in transposition_table and transposition_table[board_hash][0] >= depth:
-        return transposition_table[board_hash][1]
-
+def minimax(board, depth, alpha, beta, maximizingPlayer,  piece, winning_move):
     valid_locations = get_valid_locations(board)
-    is_terminal = is_terminal_node(board, winning_move)
-    if depth == 0 or is_terminal:
-        if is_terminal:
-            if winning_move(board, piece):
-                return (None, 10000000)
-            elif winning_move(board, 2 if piece == 1 else 1):
-                return (None, -10000000)
+    terminal = is_terminal_node(board,winning_move )
+
+    if depth == 0 or terminal:
+        if terminal:
+            if winning_move(board, AI_PIECE):
+                return (None, 1000000000000)
+            elif winning_move(board, PLAYER_PIECE):
+                return (None, -1000000000000)
             else:
                 return (None, 0)
         else:
-            return (None, score_position(board, piece))
+            return (None, score_position(board, AI_PIECE))
 
-    # Sử dụng heuristic đơn giản thay vì order_moves phức tạp
-    ordered_moves = simple_move_order(valid_locations, board.shape[1])
-
-    if maximizing_player:
+    if maximizingPlayer:
         value = -math.inf
-        column = ordered_moves[0]
-        for col in ordered_moves:
+        best_col = random.choice(valid_locations)
+        for col in valid_locations:
             row = get_next_open_row(board, col)
-            b_copy = board.copy()
-            b_copy[row][col] = piece
-            new_score = minimax(b_copy, depth-1, alpha, beta, False, piece, winning_move)[1]
+            temp_board = board.copy()
+            drop_piece(temp_board, row, col, AI_PIECE)
+            new_score = minimax(temp_board, depth-1, alpha, beta, False, piece, winning_move)[1]
             if new_score > value:
                 value = new_score
-                column = col
-            alpha = max(value, alpha)
+                best_col = col
+            alpha = max(alpha, value)
             if alpha >= beta:
                 break
-        result = (column, value)
-        transposition_table[board_hash] = (depth, result)
-        return result
-    else:
+        return best_col, value
+
+    else:  # Minimizing player
         value = math.inf
-        column = ordered_moves[0]
-        opponent_piece = 2 if piece == 1 else 1
-        for col in ordered_moves:
+        best_col = random.choice(valid_locations)
+        for col in valid_locations:
             row = get_next_open_row(board, col)
-            b_copy = board.copy()
-            b_copy[row][col] = opponent_piece
-            new_score = minimax(b_copy, depth-1, alpha, beta, True, piece, winning_move)[1]
+            temp_board = board.copy()
+            drop_piece(temp_board, row, col, PLAYER_PIECE)
+            new_score = minimax(temp_board, depth-1, alpha, beta, True, piece, winning_move)[1]
             if new_score < value:
                 value = new_score
-                column = col
-            beta = min(value, beta)
+                best_col = col
+            beta = min(beta, value)
             if alpha >= beta:
                 break
-        result = (column, value)
-        transposition_table[board_hash] = (depth, result)
-        return result
-
+        return best_col, value
 # Iterative Deepening với giới hạn thời gian
 def get_move(board, piece, winning_move):
-    col, _ = minimax(board, 9 , -math.inf, math.inf, True, piece, winning_move)
+    col, _ = minimax(board, 6,  -math.inf, math.inf, True, piece, winning_move)
     return col 
