@@ -18,7 +18,7 @@ def evaluate_window(window, piece):
     if window.count(opponent_piece) == 3 and window.count(0) == 1:
         score -= 10 
     elif window.count(opponent_piece) == 4:
-        score -= 1000  
+        score -= 10000000000 
     return score
 
 def score_position(board, piece):
@@ -57,7 +57,6 @@ def get_next_open_row(board, col):
         if board[r][col] == 0:
             return r
 
-# Heuristic đơn giản để ưu tiên cột giữa
 def simple_move_order(valid_locations, board_width):
     center = board_width // 2
     return sorted(valid_locations, key=lambda x: abs(x - center))
@@ -80,7 +79,6 @@ def minimax(board, depth, alpha, beta, maximizing_player, piece, winning_move):
         else:
             return (None, score_position(board, piece))
 
-    # Sử dụng heuristic đơn giản thay vì order_moves phức tạp
     ordered_moves = simple_move_order(valid_locations, board.shape[1])
 
     if maximizing_player:
@@ -119,7 +117,14 @@ def minimax(board, depth, alpha, beta, maximizing_player, piece, winning_move):
         transposition_table[board_hash] = (depth, result)
         return result
 
-# Iterative Deepening với giới hạn thời gian
+# Iterative Deepening từ depth 6 ngay từ đầu
 def get_move(board, piece, winning_move):
-    col, _ = minimax(board, 8, -math.inf, math.inf, True, piece, winning_move)
-    return col 
+    best_col = None
+    start_time = time.time()
+    time_limit = 6.0 
+    for depth in range(8,20):  
+        if time.time() - start_time > time_limit:
+            break
+        col, _ = minimax(board, depth, -math.inf, math.inf, True, piece, winning_move)
+        best_col = col
+    return best_col
