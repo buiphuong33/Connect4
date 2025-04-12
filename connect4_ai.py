@@ -102,7 +102,7 @@ def play_ai_game(screen, event, board, turn, not_over, my_font):
                     winner = "Player WIN!"
                     not_over = False
                 elif len(get_valid_locations(board)) == 0:
-                    winner = "Draw!"
+                    winner = "It's a tie!"
                     not_over = False
                 turn = (turn + 1) % 2
     elif turn == AI_TURN and not_over:
@@ -115,7 +115,7 @@ def play_ai_game(screen, event, board, turn, not_over, my_font):
                 winner = "FFF_AI WIN!"
                 not_over = False
             elif len(get_valid_locations(board)) == 0:
-                winner = "Draw!"
+                winner = "It's a tie!"
                 not_over = False
             turn = (turn + 1) % 2
     return turn, not_over, winner

@@ -15,7 +15,7 @@ def play_no_ai_game(screen, event, board, turn, not_over, my_font):
                 winner = "Player 1 WIN!" if turn == 0 else "Player 2 WIN!"
                 not_over = False
             elif len(get_valid_locations(board)) == 0:
-                winner = "Draw!"
+                winner = "It's a tie!"
                 not_over = False
             turn = (turn + 1) % 2
     return turn, not_over, winner

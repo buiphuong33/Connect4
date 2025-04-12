@@ -115,7 +115,7 @@ def main():
                     game_over = False
                     not_over = True
                     winner = None
-                    turn = random.randint(PLAYER_TURN, AI_TURN)
+                    turn = 0
                 elif draw_button("Play vs Player", 535, 340, 250, 50, YELLOW, HOVER_COLOR):
                     state = "game"
                     ai_mode = False
