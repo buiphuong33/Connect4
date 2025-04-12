@@ -12,20 +12,20 @@ def evaluate_window(window, piece):
     if window.count(piece) == 4:
         score += 100
     elif window.count(piece) == 3 and window.count(0) == 1:
-        score += 5
+        score += 10 
     elif window.count(piece) == 2 and window.count(0) == 2:
-        score += 2
+        score += 5
     if window.count(opponent_piece) == 3 and window.count(0) == 1:
-        score -= 10 
+        score -= 20 
     elif window.count(opponent_piece) == 4:
-        score -= 10000000000 
+        score -= 100000 
     return score
 
 def score_position(board, piece):
     score = 0
     center_array = [int(i) for i in list(board[:, board.shape[1]//2])]
     center_count = center_array.count(piece)
-    score += center_count * 3 
+    score += center_count * 5 
     for r in range(board.shape[0]):
         row_array = [int(i) for i in list(board[r, :])]
         for c in range(board.shape[1] - 3):
@@ -56,23 +56,59 @@ def get_next_open_row(board, col):
     for r in range(board.shape[0]-1, -1, -1):
         if board[r][col] == 0:
             return r
+# def advanced_move_order(valid_locations, board, piece, winning_move):
+#     opponent_piece = 2 if piece == 1 else 1
+#     move_scores = []
+#     for col in valid_locations:
+#         row = get_next_open_row(board, col)
+#         b_copy = board.copy()
+#         b_copy[row][col] = piece
+#         if winning_move(b_copy, piece):  # Thắng ngay
+#             return [col]
+#         b_copy[row][col] = opponent_piece
+#         if winning_move(b_copy, opponent_piece):  # Chặn đối thủ thắng
+#             return [col]
+#         score = score_position(b_copy, piece)  # Đánh giá heuristic
+#         move_scores.append((col, score))
+#     move_scores.sort(key=lambda x: x[1], reverse=True)  # Sắp xếp theo điểm
+#     return [col for col, _ in move_scores]
+
 def advanced_move_order(valid_locations, board, piece, winning_move):
     opponent_piece = 2 if piece == 1 else 1
     move_scores = []
+    center_column = 3  # Cột giữa (giả sử bàn cờ 7 cột, chỉ số từ 0 đến 6)
+    center_bias = 5   # Hệ số ưu tiên cho cột giữa, có thể điều chỉnh
+
     for col in valid_locations:
         row = get_next_open_row(board, col)
         b_copy = board.copy()
+        
+        # Kiểm tra nước đi thắng ngay
         b_copy[row][col] = piece
-        if winning_move(b_copy, piece):  # Thắng ngay
+        if winning_move(b_copy, piece):
             return [col]
+        
+        # Kiểm tra chặn đối thủ thắng
         b_copy[row][col] = opponent_piece
-        if winning_move(b_copy, opponent_piece):  # Chặn đối thủ thắng
+        if winning_move(b_copy, opponent_piece):
             return [col]
-        score = score_position(b_copy, piece)  # Đánh giá heuristic
-        move_scores.append((col, score))
-    move_scores.sort(key=lambda x: x[1], reverse=True)  # Sắp xếp theo điểm
-    return [col for col, _ in move_scores]
+        
+        # Đánh giá heuristic
+        b_copy[row][col] = piece  # Đặt lại để đánh giá cho piece của mình
+        score = score_position(b_copy, piece)
+        
+        # Thêm hệ số ưu tiên cho cột giữa
+        if col == center_column:
+            score += center_bias
+        # Có thể thêm ưu tiên giảm dần cho các cột gần giữa
+        elif col in [center_column - 1, center_column + 1]:
+            score += center_bias // 2  # Ưu tiên thấp hơn cho cột sát giữa
 
+        move_scores.append((col, score))
+    
+    # Sắp xếp theo điểm số, ưu tiên cột có score cao hơn
+    move_scores.sort(key=lambda x: x[1], reverse=True)
+    return [col for col, _ in move_scores]
 def simple_move_order(valid_locations, board_width):
     center = board_width // 2
     return sorted(valid_locations, key=lambda x: abs(x - center))
@@ -134,15 +170,9 @@ def minimax(board, depth, alpha, beta, maximizing_player, piece, winning_move):
         return result
 
 def get_move(board, piece, winning_move):
-    # Count the number of pieces on the board
     pieces_on_board = np.count_nonzero(board)
-    
-    # Define depth based on game progress
-    base_depth = 6
-    max_depth = 12   # Cap the maximum depth to avoid excessive computation
-    depth_increase = pieces_on_board // 7   # Increase depth by 1 for every 10 pieces
-    depth = min(base_depth + depth_increase, max_depth)
-    
-    # Run minimax with the calculated depth
+    base_depth = 7 
+    depth_increase = pieces_on_board // 10 
+    depth = base_depth + depth_increase*2 
     col, _ = minimax(board, depth, -math.inf, math.inf, True, piece, winning_move)
     return col
