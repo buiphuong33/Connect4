@@ -12,13 +12,15 @@ def evaluate_window(window, piece):
     if window.count(piece) == 4:
         score += 100
     elif window.count(piece) == 3 and window.count(0) == 1:
-        score += 10 
+        score += 20 
     elif window.count(piece) == 2 and window.count(0) == 2:
         score += 5
     if window.count(opponent_piece) == 3 and window.count(0) == 1:
-        score -= 20 
+        score -= -40 
+    elif  window.count(opponent_piece) == 2  and window.count(0) == 2 :
+        score -= -8 
     elif window.count(opponent_piece) == 4:
-        score -= 100000 
+        score -= 10000 
     return score
 
 def score_position(board, piece):
