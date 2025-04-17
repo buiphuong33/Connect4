@@ -33,6 +33,7 @@ def get_best_move(state: GameState) -> int:
     AI_PLAYER = state.current_player
     OPPONENT = 2 if AI_PLAYER == 1 else 1
     board = state.board
+    last_depth = 5
 
     def make_move(board, col, player):
         new_board = [row[:] for row in board]
@@ -171,7 +172,7 @@ def get_best_move(state: GameState) -> int:
                     break
             return best_col, value
 
-    best_move, _ = minimax(board, 4, -math.inf, math.inf, True)
+    best_move, _ = minimax(board, last_depth, -math.inf, math.inf, True)
 
     # Fall-back in case all good moves are filtered
     if best_move is None or best_move not in state.valid_moves:
