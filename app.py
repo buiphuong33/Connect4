@@ -122,7 +122,7 @@ def get_best_move(state: GameState) -> int:
     def minimax(board, depth, alpha, beta, maximizingPlayer):
         valid_locations = get_valid_moves(board)
 
-        # === Move ordering: prioritize by score ===
+        # Move ordering: prioritize by score
         move_scores = []
         for col in valid_locations:
             new_board = make_move(board, col, AI_PLAYER if maximizingPlayer else OPPONENT)
