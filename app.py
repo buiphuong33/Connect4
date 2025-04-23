@@ -33,7 +33,7 @@ def get_best_move(state: GameState) -> int:
     AI_PLAYER = state.current_player
     OPPONENT = 2 if AI_PLAYER == 1 else 1
     board = state.board
-    last_depth = 5
+    last_depth = 6
 
     def make_move(board, col, player):
         new_board = [row[:] for row in board]
@@ -171,6 +171,11 @@ def get_best_move(state: GameState) -> int:
                 if alpha >= beta:
                     break
             return best_col, value
+        
+    for col in state.valid_moves:
+     temp_board = make_move(board, col, AI_PLAYER)
+     if winning_move(temp_board, AI_PLAYER):
+        return col
 
     best_move, _ = minimax(board, last_depth, -math.inf, math.inf, True)
 
@@ -181,8 +186,7 @@ def get_best_move(state: GameState) -> int:
                 return col
         return random.choice(state.valid_moves)
 
-    return best_move
-
+    return best_move;
 
 @app.post("/api/connect4-move")
 async def make_move(game_state: GameState) -> AIResponse:
