@@ -25,178 +25,168 @@ class AIResponse(BaseModel):
     move: int
 
 def get_best_move(state: GameState) -> int:
-    import math
+    import math, random
 
-ROW_COUNT = 6
-COLUMN_COUNT = 7
-WINDOW_LENGTH = 4
-PLAYER_PIECE = 1
-AI_PIECE = 2
-EMPTY = 0
-depth = 7
+    ROW_COUNT = 6
+    COLUMN_COUNT = 7
+    WINDOW_LENGTH = 4
+    AI_PLAYER = state.current_player
+    OPPONENT = 2 if AI_PLAYER == 1 else 1
+    board = state.board
+    last_depth = 6
 
-# board = state.board
+    def make_move(board, col, player):
+        new_board = [row[:] for row in board]
+        for row in reversed(range(ROW_COUNT)):
+            if new_board[row][col] == 0:
+                new_board[row][col] = player
+                return new_board
+        return new_board
 
-def evaluate_window(window, piece):
-    opponent_piece = PLAYER_PIECE if piece == AI_PIECE else AI_PIECE
-    score = 0
-    if window.count(piece) == 4:
-        score += 100
-    elif window.count(piece) == 3 and window.count(EMPTY) == 1:
-        score += 10
-    elif window.count(piece) == 2 and window.count(EMPTY) == 2:
-        score += 5
-    if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1:
-        score -= 80  # Phạt nặng khi để đối thủ có 3 hàng chờ
-    return score
+    def get_valid_moves(board):
+        return [c for c in range(COLUMN_COUNT) if board[0][c] == 0]
 
-# Tính điểm toàn bộ bàn cờ
-
-def score_position(board, piece):
-    score = 0
-
-    # Ưu tiên cột giữa
-    center_array = [int(i) for i in list(board[:, COLUMN_COUNT // 2])]
-    center_count = center_array.count(piece)
-    score += center_count * 6
-
-    # Duyệt hàng ngang
-    for r in range(ROW_COUNT):
-        row_array = [int(i) for i in list(board[r, :])]
-        for c in range(COLUMN_COUNT - 3):
-            window = row_array[c:c + WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
-
-    # Duyệt dọc
-    for c in range(COLUMN_COUNT):
-        col_array = [int(i) for i in list(board[:, c])]
-        for r in range(ROW_COUNT - 3):
-            window = col_array[r:r + WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
-
-    # Duyệt chéo /
-    for r in range(ROW_COUNT - 3):
-        for c in range(COLUMN_COUNT - 3):
-            window = [board[r + i][c + i] for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
-
-    # Duyệt chéo \
-    for r in range(ROW_COUNT - 3):
-        for c in range(COLUMN_COUNT - 3):
-            window = [board[r + 3 - i][c + i] for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
-
-    return score
-
-# Kiểm tra kết thúc
-
-def is_terminal_node(board):
-    return (winning_move(board, PLAYER_PIECE) or
-            winning_move(board, AI_PIECE) or
-            len(get_valid_locations(board)) == 0)
-
-# Trả về cột hợp lệ
-
-def get_valid_locations(board):
-    return [c for c in range(COLUMN_COUNT) if board[0][c] == 0]
-
-# Lấy hàng đầu tiên còn trống
-
-def get_next_open_row(board, col):
-    for r in range(ROW_COUNT - 1, -1, -1):
-        if board[r][col] == 0:
-            return r
-
-# Drop quân vào bàn
-
-def drop_piece(board, row, col, piece):
-    board[row][col] = piece
-
-# Kiểm tra thắng
-
-def winning_move(board, piece):
-    for c in range(COLUMN_COUNT - 3):
+    def winning_move(board, player):
         for r in range(ROW_COUNT):
-            if all(board[r][c + i] == piece for i in range(4)):
-                return True
-
-    for c in range(COLUMN_COUNT):
+            for c in range(COLUMN_COUNT - 3):
+                if all(board[r][c + i] == player for i in range(4)):
+                    return True
         for r in range(ROW_COUNT - 3):
-            if all(board[r + i][c] == piece for i in range(4)):
-                return True
-
-    for c in range(COLUMN_COUNT - 3):
+            for c in range(COLUMN_COUNT):
+                if all(board[r + i][c] == player for i in range(4)):
+                    return True
         for r in range(ROW_COUNT - 3):
-            if all(board[r + i][c + i] == piece for i in range(4)):
-                return True
-
-    for c in range(COLUMN_COUNT - 3):
+            for c in range(COLUMN_COUNT - 3):
+                if all(board[r + i][c + i] == player for i in range(4)):
+                    return True
         for r in range(3, ROW_COUNT):
-            if all(board[r - i][c + i] == piece for i in range(4)):
+            for c in range(COLUMN_COUNT - 3):
+                if all(board[r - i][c + i] == player for i in range(4)):
+                    return True
+        return False
+
+    def evaluate_window(window, player):
+        score = 0
+        opp = OPPONENT if player == AI_PLAYER else AI_PLAYER
+
+        if window.count(player) == 4:
+            score += 100
+        elif window.count(player) == 3 and window.count(0) == 1:
+            score += 5
+        elif window.count(player) == 2 and window.count(0) == 2:
+            score += 2
+        if window.count(opp) == 3 and window.count(0) == 1:
+            score -= 4
+        return score
+
+    def score_position(board, player):
+        score = 0
+        center_array = [board[r][COLUMN_COUNT // 2] for r in range(ROW_COUNT)]
+        score += center_array.count(player) * 3
+
+        for r in range(ROW_COUNT):
+            row_array = board[r]
+            for c in range(COLUMN_COUNT - 3):
+                window = row_array[c:c + WINDOW_LENGTH]
+                score += evaluate_window(window, player)
+
+        for c in range(COLUMN_COUNT):
+            col_array = [board[r][c] for r in range(ROW_COUNT)]
+            for r in range(ROW_COUNT - 3):
+                window = col_array[r:r + WINDOW_LENGTH]
+                score += evaluate_window(window, player)
+
+        for r in range(ROW_COUNT - 3):
+            for c in range(COLUMN_COUNT - 3):
+                window = [board[r + i][c + i] for i in range(WINDOW_LENGTH)]
+                score += evaluate_window(window, player)
+
+        for r in range(ROW_COUNT - 3):
+            for c in range(COLUMN_COUNT - 3):
+                window = [board[r + 3 - i][c + i] for i in range(WINDOW_LENGTH)]
+                score += evaluate_window(window, player)
+
+        return score
+
+    def is_terminal(board):
+        return winning_move(board, AI_PLAYER) or winning_move(board, OPPONENT) or len(get_valid_moves(board)) == 0
+
+    def opponent_can_win_next(board, col):
+        new_board = make_move(board, col, AI_PLAYER)
+        opp_moves = get_valid_moves(new_board)
+        for opp_col in opp_moves:
+            if winning_move(make_move(new_board, opp_col, OPPONENT), OPPONENT):
                 return True
+        return False
 
-    return False
+    def minimax(board, depth, alpha, beta, maximizingPlayer):
+        valid_locations = get_valid_moves(board)
 
-# Move ordering tối ưu
+        # Move ordering: prioritize by score
+        move_scores = []
+        for col in valid_locations:
+            new_board = make_move(board, col, AI_PLAYER if maximizingPlayer else OPPONENT)
+            move_scores.append((col, score_position(new_board, AI_PLAYER)))
+        ordered_moves = [col for col, _ in sorted(move_scores, key=lambda x: x[1], reverse=maximizingPlayer)]
 
-def order_moves(valid_locations, board, piece):
-    scores = {}
-    for col in valid_locations:
-        row = get_next_open_row(board, col)
-        temp_board = board.copy()
-        drop_piece(temp_board, row, col, piece)
-        scores[col] = score_position(temp_board, piece)
-    return sorted(valid_locations, key=lambda x: scores[x], reverse=True)
+        is_terminal_node = is_terminal(board)
 
-# Minimax + alpha-beta + move ordering
-
-def minimax(board, depth, alpha, beta, maximizingPlayer):
-    valid_locations = get_valid_locations(board)
-    is_terminal = is_terminal_node(board)
-    if depth == 0 or is_terminal:
-        if is_terminal:
-            if winning_move(board, AI_PIECE):
-                return (None, 1000000000)
-            elif winning_move(board, PLAYER_PIECE):
-                return (None, -1000000000)
+        if depth == 0 or is_terminal_node:
+            if is_terminal_node:
+                if winning_move(board, AI_PLAYER):
+                    return (None, 1e10)
+                elif winning_move(board, OPPONENT):
+                    return (None, -1e10)
+                else:
+                    return (None, 0)
             else:
-                return (None, 0)
+                return (None, score_position(board, AI_PLAYER))
+
+        if maximizingPlayer:
+            value = -math.inf
+            best_col = random.choice(valid_locations)
+            for col in ordered_moves:
+                # Skip moves that allow opponent to win immediately
+                if opponent_can_win_next(board, col):
+                    continue
+                new_board = make_move(board, col, AI_PLAYER)
+                new_score = minimax(new_board, depth - 1, alpha, beta, False)[1]
+                if new_score > value:
+                    value = new_score
+                    best_col = col
+                alpha = max(alpha, value)
+                if alpha >= beta:
+                    break
+            return best_col, value
         else:
-            return (None, score_position(board, AI_PIECE))
+            value = math.inf
+            best_col = random.choice(valid_locations)
+            for col in ordered_moves:
+                new_board = make_move(board, col, OPPONENT)
+                new_score = minimax(new_board, depth - 1, alpha, beta, True)[1]
+                if new_score < value:
+                    value = new_score
+                    best_col = col
+                beta = min(beta, value)
+                if alpha >= beta:
+                    break
+            return best_col, value
+        
+    for col in state.valid_moves:
+     temp_board = make_move(board, col, AI_PLAYER)
+     if winning_move(temp_board, AI_PLAYER):
+        return col
 
-    if maximizingPlayer:
-        value = -math.inf
-        best_col = random.choice(valid_locations)
-        for col in order_moves(valid_locations, board, AI_PIECE):
-            row = get_next_open_row(board, col)
-            temp_board = board.copy()
-            drop_piece(temp_board, row, col, AI_PIECE)
-            new_score = minimax(temp_board, depth - 1, alpha, beta, False)[1]
-            if new_score > value:
-                value = new_score
-                best_col = col
-            alpha = max(alpha, value)
-            if alpha >= beta:
-                break
-        return best_col, value
-    else:
-        value = math.inf
-        best_col = random.choice(valid_locations)
-        for col in order_moves(valid_locations, board, PLAYER_PIECE):
-            row = get_next_open_row(board, col)
-            temp_board = board.copy()
-            drop_piece(temp_board, row, col, PLAYER_PIECE)
-            new_score = minimax(temp_board, depth - 1, alpha, beta, True)[1]
-            if new_score < value:
-                value = new_score
-                best_col = col
-            beta = min(beta, value)
-            if alpha >= beta:
-                break
-        return best_col, value
+    best_move, _ = minimax(board, last_depth, -math.inf, math.inf, True)
 
-    best_move, _ = minimax(board, 4, -math.inf, math.inf, True)
-    return best_move if best_move in state.valid_moves else random.choice(state.valid_moves)
+    # Fall-back in case all good moves are filtered
+    if best_move is None or best_move not in state.valid_moves:
+        for col in state.valid_moves:
+            if not opponent_can_win_next(board, col):
+                return col
+        return random.choice(state.valid_moves)
+
+    return best_move;
 
 @app.post("/api/connect4-move")
 async def make_move(game_state: GameState) -> AIResponse:
@@ -211,6 +201,10 @@ async def make_move(game_state: GameState) -> AIResponse:
         if game_state.valid_moves:
             return AIResponse(move=game_state.valid_moves[0])
         raise HTTPException(status_code=400, detail=str(e))
+@app.get("/api/test")
+async def health_check():
+    return {"status": "ok", "message": "Server is running"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
