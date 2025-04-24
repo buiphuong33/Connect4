@@ -33,7 +33,7 @@ def get_best_move(state: GameState) -> int:
     AI_PLAYER = state.current_player
     OPPONENT = 2 if AI_PLAYER == 1 else 1
     board = state.board
-    last_depth = 6
+    last_depth = 5
 
     def make_move(board, col, player):
         new_board = [row[:] for row in board]
