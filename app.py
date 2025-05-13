@@ -35,6 +35,8 @@ def get_best_move(state: GameState) -> int:
     board = state.board
     last_depth = 5
 
+    #Hhực hiện một nước đi trên bảng bằng cách đặt đĩa của người chơi player vào cột col. 
+    # Đĩa sẽ rơi xuống ô trống thấp nhất trong cột.
     def make_move(board, col, player):
         new_board = [row[:] for row in board]
         for row in reversed(range(ROW_COUNT)):
@@ -43,9 +45,10 @@ def get_best_move(state: GameState) -> int:
                 return new_board
         return new_board
 
+    # trả về danh sách các cột mà người chơi có thể thực hiện nước đi (các cột chưa đầy).
     def get_valid_moves(board):
         return [c for c in range(COLUMN_COUNT) if board[0][c] == 0]
-
+    #kiểm tra xem người chơi player có đạt được chuỗi 4 đĩa liên tiếp trên bảng hay không 
     def winning_move(board, player):
         for r in range(ROW_COUNT):
             for c in range(COLUMN_COUNT - 3):
@@ -65,6 +68,7 @@ def get_best_move(state: GameState) -> int:
                     return True
         return False
 
+    #đánh giá một "cửa sổ" gồm 4 ô liên tiếp, gán điểm số dựa trên số lượng đĩa của player và đối thủ trong cửa sổ.
     def evaluate_window(window, player):
         score = 0
         opp = OPPONENT if player == AI_PLAYER else AI_PLAYER
@@ -78,7 +82,7 @@ def get_best_move(state: GameState) -> int:
         if window.count(opp) == 3 and window.count(0) == 1:
             score -= 4
         return score
-
+    # đánh giá toàn bộ bảng trò chơi, tính điểm tổng cho player dựa trên tất cả các cửa sổ 4 ô.
     def score_position(board, player):
         score = 0
         center_array = [board[r][COLUMN_COUNT // 2] for r in range(ROW_COUNT)]
@@ -107,10 +111,12 @@ def get_best_move(state: GameState) -> int:
                 score += evaluate_window(window, player)
 
         return score
-
+    
+    # kiểm tra xem trạng thái bảng có phải là trạng thái kết thúc trò chơi hay không.
     def is_terminal(board):
         return winning_move(board, AI_PLAYER) or winning_move(board, OPPONENT) or len(get_valid_moves(board)) == 0
 
+    #kiểm tra xem nếu AI đi vào cột col, đối thủ có thể đi một nước ngay sau đó để thắng hay không.
     def opponent_can_win_next(board, col):
         new_board = make_move(board, col, AI_PLAYER)
         opp_moves = get_valid_moves(new_board)
@@ -121,8 +127,7 @@ def get_best_move(state: GameState) -> int:
 
     def minimax(board, depth, alpha, beta, maximizingPlayer):
         valid_locations = get_valid_moves(board)
-
-        # Move ordering: prioritize by score
+        # Thứ tự nước đi: ưu tiên điểm số 
         move_scores = []
         for col in valid_locations:
             new_board = make_move(board, col, AI_PLAYER if maximizingPlayer else OPPONENT)
