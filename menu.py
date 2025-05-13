@@ -7,6 +7,7 @@ from connect4_no_ai import play_no_ai_game
 
 pygame.init()
 
+# Thiết lập kích thước cửa sổ trò chơi
 WIDTH, HEIGHT = 1000, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Connect 4")
@@ -26,9 +27,10 @@ YELLOW = (255, 204, 0)     # Người chơi 2 / AI
 HOVER_COLOR = (238, 201, 0)
 
 font = pygame.font.Font(None, 35)
-my_font = pygame.font.SysFont("monospace", 40)  # Giảm kích thước font để tránh bị cắt
+my_font = pygame.font.SysFont("monospace", 40)  
 info_font = pygame.font.Font(None, 50)
 
+# Hàm vẽ nút bấm
 def draw_button(text, x, y, w, h, color, hover_color):
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
@@ -39,6 +41,7 @@ def draw_button(text, x, y, w, h, color, hover_color):
     screen.blit(text_surface, text_rect)
     return hovered and click[0]
 
+# Hàm vẽ thông tin trò chơi
 def draw_game_info(turn, ai_mode, winner=None):
     info_x = 595
     info_y = 0 
@@ -80,6 +83,7 @@ def draw_game_info(turn, ai_mode, winner=None):
         winner_rect = winner_surface.get_rect(center=(info_x + info_width / 2, info_y + 150))
         screen.blit(winner_surface, winner_rect)
 
+# Hàm vẽ vòng tròn xem trước khi di chuột
 def draw_preview_circle(turn, not_over, ai_mode):
     pygame.draw.rect(screen, BLACK, (BOARD_X_OFFSET, 0, COLS * SQUARESIZE, SQUARESIZE))
     if not_over and (not ai_mode or (ai_mode and turn == PLAYER_TURN)):
@@ -88,6 +92,7 @@ def draw_preview_circle(turn, not_over, ai_mode):
         color = RED if turn == 0 else YELLOW
         pygame.draw.circle(screen, color, (xpos, int(SQUARESIZE / 2)), circle_radius)
 
+# Hàm chính của trò chơi
 def main():
     global game_over, winner
     game_over = False
@@ -124,8 +129,7 @@ def main():
                     not_over = True
                     winner = None
                     turn = 0
-                elif draw_button("Compete", 535, 480, 250, 50, YELLOW, HOVER_COLOR):
-                    pass
+                
 
             elif state == "game" and board is not None:
                 if draw_button("New Game", 720, 400, 150, 50, (68, 184, 154), HOVER_COLOR):
@@ -165,7 +169,6 @@ def main():
         if state == "menu":
             draw_button("Play vs Player", 535, 340, 250, 50, YELLOW, HOVER_COLOR)
             draw_button("Play vs AI", 535, 410, 250, 50, YELLOW, HOVER_COLOR)
-            draw_button("Compete", 535, 480, 250, 50, YELLOW, HOVER_COLOR)
         elif state == "game" and board is not None:
             draw_board(screen, board)
             draw_preview_circle(turn, not_over, ai_mode)
