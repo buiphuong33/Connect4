@@ -38,7 +38,7 @@ Trò chơi hỗ trợ giao diện trực quan, dễ sử dụng với các chế
 
 <img src="images/Connect4_1.jpg" alt="Màn hình chính với lựa chọn chế độ chơi" width="600"/>
 
-### 🤖 Chế độ Người chơi vs AI
+### 🤖 Chế độ chơi Người vs Người hoặc Người chơi vs AI 
 
 <img src="images/Connect4_2.jpg" alt="Giao diện chơi Người vs AI" width="600"/>
 
