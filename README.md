@@ -50,8 +50,8 @@ Trò chơi hỗ trợ giao diện trực quan, dễ sử dụng với các chế
 connect4-ai/
 ├── menu.py              # Giao diện menu chính, chọn chế độ chơi
 ├── connect4_utils.py    # Chứa các tiện ích cốt lõi để quản lý bảng trò chơi (khởi tạo, thả đĩa, kiểm tra thắng).
-├── connect4_no_ai.py    # Triển khai chế độ Người vs Người (PvP)
-├── connect4_ai.py       # Triển khai chế độ Người vs Máy (PvE)
+├── connect4_no_ai.py    # Triển khai chế độ Người vs Người (Player vs Player)
+├── connect4_ai.py       # Triển khai chế độ Người vs Máy (Player vs AI)
 ├── app.py               # Thuật toán AI + API phục vụ chế độ thi đấu nhóm
 ├── images/              # Thư mục chứa ảnh minh họa giao diện
 └── README.md            # Tài liệu mô tả dự án
