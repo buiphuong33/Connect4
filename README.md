@@ -55,5 +55,3 @@ connect4-ai/
 ├── app.py               # Thuật toán AI + API phục vụ chế độ thi đấu nhóm
 ├── images/              # Thư mục chứa ảnh minh họa giao diện
 └── README.md            # Tài liệu mô tả dự án
-
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/buiphuong33/Connect4)
